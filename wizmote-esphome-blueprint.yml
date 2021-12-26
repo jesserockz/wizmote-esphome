@@ -63,7 +63,7 @@ trigger:
 
 action:
   - variables:
-      button: "{{ trigger.event.data.button }}"
+      button: "{{ trigger.event.data.button | int }}"
       brightness_step: !input brightness_step
       light_one: !input light_one
       light_two: !input light_two
@@ -89,31 +89,31 @@ action:
           timeout: 00:00:05
         - choose:
             - conditions:
-                - "{{ wait.trigger.event.data.button == 1 }}"
+                - "{{ wait.trigger.event.data.button | int == 1 }}"
               sequence:
                 - service: light.turn_on
                   target: "{{ light }}"
             - conditions:
-                - "{{ wait.trigger.event.data.button == 2 }}"
+                - "{{ wait.trigger.event.data.button | int == 2 }}"
               sequence:
                 - service: light.turn_off
                   target: "{{ light }}"
             - conditions:
-                - "{{ wait.trigger.event.data.button == 3 }}"
+                - "{{ wait.trigger.event.data.button | int == 3 }}"
               sequence:
                 - service: light.turn_on
                   target: "{{ light }}"
                   data:
                     brightness_pct: !input brightness_dim
             - conditions:
-                - "{{ wait.trigger.event.data.button == 8 }}"
+                - "{{ wait.trigger.event.data.button | int == 8 }}"
               sequence:
                 - service: light.turn_on
                   target: "{{ light }}"
                   data:
                     brightness_step_pct: "-{{ brightness_step }}"
             - conditions:
-                - "{{ wait.trigger.event.data.button == 9 }}"
+                - "{{ wait.trigger.event.data.button | int == 9 }}"
               sequence:
                 - service: light.turn_on
                   target: "{{ light }}"
