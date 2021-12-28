@@ -1,13 +1,15 @@
 #include "esp_now_component.h"
 
 #if defined(USE_ESP32)
-#include "esp_now.h"
+#include <esp_now.h">
 #elif defined(USE_ESP8266)
-#include "espnow.h"
+#include <ESP8266WiFi.h>
+#include <espnow.h>
 #endif
 
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
+#include "esphome/core/version.h"
 
 namespace esphome {
 namespace esp_now {
@@ -18,6 +20,8 @@ ESPNowComponent::ESPNowComponent() { global_esp_now = this; }
 
 void ESPNowComponent::setup() {
   ESP_LOGCONFIG(TAG, "Setting up ESP-NOW...");
+
+#ifdef USE_ESP32
   esp_err_t err = esp_now_init();
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "esp_now_init failed: %s", esp_err_to_name(err));
@@ -25,21 +29,35 @@ void ESPNowComponent::setup() {
     return;
   }
 
-#ifdef USE_ESP8266
-  err = esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "esp_now_set_self_role failed: %s", esp_err_to_name(err));
-    this->mark_failed();
-    return;
-  }
-#endif
-
   err = esp_now_register_recv_cb(ESPNowComponent::on_data_received);
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "esp_now_register_recv_cb failed: %s", esp_err_to_name(err));
     this->mark_failed();
     return;
   }
+
+#elif defined(USE_ESP8266)
+  int err = esp_now_init();
+  if (err) {
+    ESP_LOGE(TAG, "esp_now_init failed: %d", err);
+    this->mark_failed();
+    return;
+  }
+
+  err = esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
+  if (err) {
+    ESP_LOGE(TAG, "esp_now_set_self_role failed: %d", err);
+    this->mark_failed();
+    return;
+  }
+
+  err = esp_now_register_recv_cb(ESPNowComponent::on_data_received);
+  if (err) {
+    ESP_LOGE(TAG, "esp_now_register_recv_cb failed: %d", err);
+    this->mark_failed();
+    return;
+  }
+#endif
 
   ESP_LOGCONFIG(TAG, "ESP-NOW setup complete");
 }
@@ -66,7 +84,11 @@ void ESPNowComponent::loop() {
 }
 void ESPNowComponent::dump_config() { ESP_LOGCONFIG(TAG, "esp_now:"); }
 
+#ifdef USE_ESP8266
+void ESPNowComponent::on_data_received(uint8_t *bssid, uint8_t *data, uint8_t len) {
+#elif defined(USE_ESP32)
 void ESPNowComponent::on_data_received(const uint8_t *bssid, const uint8_t *data, int len) {
+#endif
   auto packet = make_unique<ESPNowPacket>(bssid, data, len);
   global_esp_now->receive_queue_.push(std::move(packet));
 }

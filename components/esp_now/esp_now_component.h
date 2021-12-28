@@ -41,7 +41,11 @@ class ESPNowComponent : public Component {
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_WIFI; }
 
+#ifdef USE_ESP8266
+  static void on_data_received(uint8_t *bssid, uint8_t *data, uint8_t len);
+#elif defined(USE_ESP32)
   static void on_data_received(const uint8_t *bssid, const uint8_t *data, int len);
+#endif
 
   Trigger<ESPNowPacket> *get_on_packet_trigger() { return this->on_packet_; }
 
