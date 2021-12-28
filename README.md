@@ -18,10 +18,10 @@ This repo also contains a blueprint for a Home Assistant automation which allows
 external_components:
   - source: github://jesserockz/wizmote-esphome
     components:
-      - espnow
+      - esp_now
       - wizmote
 
-espnow:
+esp_now:
 
 wizmote:
   on_button:
