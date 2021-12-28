@@ -10,8 +10,6 @@ The WizMote is a Wi-Fi enabled remote controller from Wiz that uses ESP-NOW to c
 
 This repo will allow you to use an ESP running ESPHome to "intercept" the WizMote button presses, and forward them to Home Assistant, or act on them directly within ESPHome.
 
-> **Note:** This has not been tested on ESP8266 yet.
-
 This repo also contains a blueprint for a Home Assistant automation which allows setting up any 4 lights in Home Assistant to be controlled by the WizMote.
 
 [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fjesserockz%2Fwizmote-esphome%2Fblob%2Fmain%2Fwizmote-esphome-blueprint.yml)
