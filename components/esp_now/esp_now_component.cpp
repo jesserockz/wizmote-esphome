@@ -49,7 +49,7 @@ void ESPNowComponent::loop() {
   while (true) {
     std::unique_ptr<ESPNowPacket> packet = std::move(this->receive_queue_.front());
     this->receive_queue_.pop();
-#if ESPHOME_VERSION >= VERSION_CODE(2022,1,0)
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2022, 1, 0)
     ESP_LOGD(TAG, "mac: %s, data: %s", format_hex_pretty(packet->get_bssid().data(), 6).c_str(),
              format_hex_pretty(packet->get_data()).c_str());
 #else
