@@ -1,7 +1,7 @@
 #include "esp_now_component.h"
 
 #if defined(USE_ESP32)
-#include <esp_now.h">
+#include <esp_now.h>
 #elif defined(USE_ESP8266)
 #include <ESP8266WiFi.h>
 #include <espnow.h>
