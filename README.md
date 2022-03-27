@@ -44,6 +44,3 @@ wizmote:
               sequence: !lambda 'return data.sequence;'
 
 ```
-
-> ## Note
-> `format_hex` is a helper function to convert a MAC address to a string of hexadecimal digits, but it is only available in ESPHome `dev` and will be available from `2022.1.0`.
