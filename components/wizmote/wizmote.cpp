@@ -19,7 +19,7 @@ void WizMoteListener::on_esp_now_message(esp_now::ESPNowPacket packet) {
   if (isequal && wizmote.sequence <= this->last_sequence_)
     return;
   
-  this->last_sequence_ = this->last_bssid_[i];
+  this->last_sequence_ = wizmote.sequence;
 
   for(int i=0;i<6;i++)
   {
