@@ -21,7 +21,7 @@ void WizMoteListener::on_esp_now_message(esp_now::ESPNowPacket packet) {
   
   this->last_sequence_ = this->last_bssid_[i];
 
-  for(i=0;i<6;i++)
+  for(int i=0;i<6;i++)
   {
     this->last_bssid_[i]=wizmote.bssid[i];
   }
