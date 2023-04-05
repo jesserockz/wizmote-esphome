@@ -47,7 +47,7 @@ class WizMoteListener : public esp_now::ESPNowListener {
   Trigger<WizMotePacket> *get_on_button_trigger() { return this->on_button_; }
 
  protected:
-  vector<WizMoteHistory> history;
+  WizMoteHistory history[10] = {0,};
   Trigger<WizMotePacket> *on_button_ = new Trigger<WizMotePacket>();
 };
 
