@@ -10,7 +10,7 @@ void WizMoteListener::on_esp_now_message(esp_now::ESPNowPacket packet) {
   this->on_button_->trigger(wizmote);
 }
 
-boolean update_wizmote_history(WizMotePacket *packet)
+bool update_wizmote_history(WizMotePacket *packet)
 {
   uint8_t index = 0;
   if (find_bssid_index(packet, &index))
@@ -30,7 +30,7 @@ boolean update_wizmote_history(WizMotePacket *packet)
   return false;
 }
 
-boolean find_bssid_index(WizMotePacket *packet, uint8_t *index)
+bool find_bssid_index(WizMotePacket *packet, uint8_t *index)
 {
   for (uint8_t i = 0; i < 10; i++)
   {
@@ -43,7 +43,7 @@ boolean find_bssid_index(WizMotePacket *packet, uint8_t *index)
   return false;
 }
 
-boolean is_bssid_equal(WizMotePacket *packet, WizMoteHistory *history)
+bool is_bssid_equal(WizMotePacket *packet, WizMoteHistory *history)
 {
   for (uint8_t i = 0; i < 6; i++)
   {
