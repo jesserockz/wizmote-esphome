@@ -34,6 +34,11 @@ typedef struct WizMotePacket {
     return packet;
   }
 } WizMotePacket;
+  
+typedef struct WizMoteHistory {
+  uint8_t bssid[6];
+  uint32_t sequence;
+} WizMoteHistory;
 
 class WizMoteListener : public esp_now::ESPNowListener {
  public:
