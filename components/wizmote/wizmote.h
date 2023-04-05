@@ -39,11 +39,6 @@ typedef struct WizMoteHistory {
   uint8_t bssid[6];
   uint32_t sequence;
 } WizMoteHistory;
- 
-protected:
-  bool update_wizmote_history(WizMotePacket *packet);
-  bool find_bssid_index(WizMotePacket *packet, uint8_t *index);
-  bool is_bssid_equal(WizMotePacket *packet, WizMoteHistory *history);
 
 class WizMoteListener : public esp_now::ESPNowListener {
  public:
@@ -52,6 +47,9 @@ class WizMoteListener : public esp_now::ESPNowListener {
   Trigger<WizMotePacket> *get_on_button_trigger() { return this->on_button_; }
 
  protected:
+  bool update_wizmote_history(WizMotePacket *packet);
+  bool find_bssid_index(WizMotePacket *packet, uint8_t *index);
+  bool is_bssid_equal(WizMotePacket *packet, WizMoteHistory *history);
   WizMoteHistory history[10] = {0,};
   Trigger<WizMotePacket> *on_button_ = new Trigger<WizMotePacket>();
 };
