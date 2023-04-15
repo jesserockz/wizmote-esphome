@@ -1,0 +1,74 @@
+blueprint:
+  name: ESPHome Wiz Smart Button Receiver
+  domain: automation
+  source_url: https://github.com/jesserockz/wizmote-esphome/blob/main/wizbutton-esphome-blueprint.yml
+  input:
+    remote:
+      name: Wiz Smart Button Mac address
+      description: Mac address of the Wiz Smart Button can be found by watching for
+        the 'esphome.wizmote_choose' or 'esphome.wizmote_action' events
+        as you press a button.
+      selector:
+        text:
+    brightness_step:
+      name: Brightness step when pressing or holding dimmer buttons
+      selector:
+        number:
+          min: 1
+          max: 50
+          unit_of_measurement: "%"
+    light_one:
+      name: Light
+      description: The light to control
+      selector:
+        target:
+          entity:
+            domain: light
+
+mode: restart
+
+trigger:
+  platform: event
+  event_type: esphome.wizmote_choose
+  event_data:
+    mac: !input "remote"
+
+action:
+  - variables:
+      button: "{{ trigger.event.data.button | int }}"
+      brightness_step: !input brightness_step
+      light: !input light_one
+  - repeat:
+      until:
+        - "{{ wait.trigger == none }}"
+      sequence:
+        - wait_for_trigger:
+            - platform: event
+              event_type: esphome.wizmote_action
+          continue_on_timeout: false
+          timeout: 00:00:05
+        - choose:
+            - conditions:
+                - "{{ wait.trigger.event.data.button | int == 100 }}"
+              sequence:
+                - service: light.turn_on
+                  target: "{{ light }}"
+            - conditions:
+                - "{{ wait.trigger.event.data.button | int == 101 }}"
+              sequence:
+                - service: light.turn_off
+                  target: "{{ light }}"
+            - conditions:
+                - "{{ wait.trigger.event.data.button | int == 102 }}"
+              sequence:
+                - service: light.turn_on
+                  target: "{{ light }}"
+                  data:
+                    brightness_step_pct: "-{{ brightness_step }}"
+            - conditions:
+                - "{{ wait.trigger.event.data.button | int == 103 }}"
+              sequence:
+                - service: light.turn_on
+                  target: "{{ light }}"
+                  data:
+                    brightness_step_pct: "{{ brightness_step }}"
