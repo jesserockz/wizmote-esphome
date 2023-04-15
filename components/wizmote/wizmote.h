@@ -29,7 +29,7 @@ typedef struct WizMotePacket {
   static inline WizMotePacket build(esp_now::ESPNowPacket espnow_packet) {
     WizMotePacket packet;
     memcpy(packet.bssid, espnow_packet.get_bssid().data(), 6);
-    memcpy(&(packet.program), espnow_packet.get_data().data(), espnow_packet.get_data().size());
+    memcpy(&(packet.program), espnow_packet.get_data().data(), 13);
     packet.sequence = encode_uint32(packet.seq[3], packet.seq[2], packet.seq[1], packet.seq[0]);
     return packet;
   }
