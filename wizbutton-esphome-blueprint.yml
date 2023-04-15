@@ -38,32 +38,28 @@ action:
       button: "{{ trigger.event.data.button | int }}"
       brightness_step: !input brightness_step
       light: !input light_one
-  - repeat:
-      until:
-        - "{{ wait.trigger == none }}"
-      sequence:
-        - choose:
-            - conditions:
-                - "{{ wait.trigger.event.data.button | int == 100 }}"
-              sequence:
-                - service: light.turn_on
-                  target: "{{ light }}"
-            - conditions:
-                - "{{ wait.trigger.event.data.button | int == 101 }}"
-              sequence:
-                - service: light.turn_off
-                  target: "{{ light }}"
-            - conditions:
-                - "{{ wait.trigger.event.data.button | int == 102 }}"
-              sequence:
-                - service: light.turn_on
-                  target: "{{ light }}"
-                  data:
-                    brightness_step_pct: "-{{ brightness_step }}"
-            - conditions:
-                - "{{ wait.trigger.event.data.button | int == 103 }}"
-              sequence:
-                - service: light.turn_on
-                  target: "{{ light }}"
-                  data:
-                    brightness_step_pct: "{{ brightness_step }}"
+  - choose:
+      - conditions:
+          - "{{ trigger.event.data.button | int == 100 }}"
+        sequence:
+          - service: light.turn_on
+            target: "{{ light }}"
+      - conditions:
+          - "{{ trigger.event.data.button | int == 101 }}"
+        sequence:
+          - service: light.turn_off
+            target: "{{ light }}"
+      - conditions:
+          - "{{ trigger.event.data.button | int == 102 }}"
+        sequence:
+          - service: light.turn_on
+            target: "{{ light }}"
+            data:
+              brightness_step_pct: "-{{ brightness_step }}"
+      - conditions:
+          - "{{ trigger.event.data.button | int == 103 }}"
+        sequence:
+          - service: light.turn_on
+            target: "{{ light }}"
+            data:
+              brightness_step_pct: "{{ brightness_step }}"
