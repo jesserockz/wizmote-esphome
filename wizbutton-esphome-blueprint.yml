@@ -50,14 +50,14 @@ action:
           - service: light.turn_off
             target: "{{ light }}"
       - conditions:
-          - "{{ trigger.event.data.button | int == 102 }}"
+          - "{{ trigger.event.data.button | int == 103 }}"
         sequence:
           - service: light.turn_on
             target: "{{ light }}"
             data:
               brightness_step_pct: "-{{ brightness_step }}"
       - conditions:
-          - "{{ trigger.event.data.button | int == 103 }}"
+          - "{{ trigger.event.data.button | int == 102 }}"
         sequence:
           - service: light.turn_on
             target: "{{ light }}"
