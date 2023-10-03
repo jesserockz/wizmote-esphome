@@ -85,6 +85,8 @@ action:
         - wait_for_trigger:
             - platform: event
               event_type: esphome.wizmote_action
+              event_data:
+                mac: !input "remote"
           continue_on_timeout: false
           timeout: 00:00:05
         - choose:
