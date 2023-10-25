@@ -62,9 +62,7 @@ void ESPNowComponent::setup() {
   ESP_LOGCONFIG(TAG, "ESP-NOW setup complete");
 }
 void ESPNowComponent::loop() {
-  if (receive_queue_.empty())
-    return;
-  while (true) {
+  while (!receive_queue_.empty()) {
     std::unique_ptr<ESPNowPacket> packet = std::move(this->receive_queue_.front());
     this->receive_queue_.pop();
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2022, 1, 0)
@@ -78,8 +76,6 @@ void ESPNowComponent::loop() {
       listener->on_esp_now_message(*packet);
 
     this->on_packet_->trigger(*packet);
-    if (this->receive_queue_.empty())
-      break;
   }
 }
 void ESPNowComponent::dump_config() { ESP_LOGCONFIG(TAG, "esp_now:"); }
