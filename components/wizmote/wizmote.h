@@ -16,15 +16,11 @@ typedef struct __attribute__((__packed__)) WizMotePacket {
 
   uint8_t program;      // 0x91 for ON button, 0x81 for all others
   uint32_t sequence;    // Incremental sequence number 32 bit unsigned integer LE
-  uint8_t byte5 = 32;   // Unknown
+  uint8_t dType1 = 32;  // Data type: button (32)
   uint8_t button;       // Identifies which button is being pressed
-  uint8_t byte8 = 1;    // Unknown, but always 0x01
-  uint8_t byte9 = 100;  // Unnkown, but always 0x64
-
-  uint8_t byte10;  // Unknown, maybe checksum
-  uint8_t byte11;  // Unknown, maybe checksum
-  uint8_t byte12;  // Unknown, maybe checksum
-  uint8_t byte13;  // Unknown, maybe checksum
+  uint8_t dType2 = 1;   // Data type: batteryLevel (1)
+  uint8_t batteryLevel; // WiZMote batteryLevel out of 100
+  uint8_t mac[4];       // CCM MAC (Message Authentication Code)
 
   static inline WizMotePacket build(esp_now::ESPNowPacket espnow_packet) {
     WizMotePacket packet;
