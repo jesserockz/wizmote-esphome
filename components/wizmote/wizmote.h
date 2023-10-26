@@ -14,7 +14,14 @@ static const uint8_t WIZMOTEHISTORYSIZE = 20;
 typedef struct __attribute__((__packed__)) WizMotePacket {
   uint8_t bssid[6];
 
-  uint8_t program;      // 0x91 for ON button, 0x81 for all others
+  union {
+    uint8_t program;    // 0x91 for ON button, 0x81 for all others
+    struct __attribute__((__packed__)) {
+      unsigned :4;
+      unsigned pairing:1;
+      unsigned :3;
+    };
+  };
   uint32_t sequence;    // Incremental sequence number 32 bit unsigned integer LE
   uint8_t dType1 = 32;  // Data type: button (32)
   uint8_t button;       // Identifies which button is being pressed
