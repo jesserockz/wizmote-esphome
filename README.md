@@ -47,3 +47,11 @@ wizmote:
               sequence: !lambda 'return data.sequence;'
 
 ```
+
+If you are using an ESP32, wifi power save can interfere with reliable ESP-NOW reception. You can disable it with:
+
+```yaml
+wifi:
+  power_save_mode: none
+
+```
