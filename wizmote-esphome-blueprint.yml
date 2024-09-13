@@ -1,123 +1,140 @@
 blueprint:
-  name: ESPHome Wizmote Receiver
+  name: ESPHome Wizmote Receiver - Generic Service Trigger
   domain: automation
-  source_url: https://github.com/jesserockz/wizmote-esphome/blob/main/wizmote-esphome-blueprint.yml
+  source_url: https://github.com/wongjustin99/wizmote-esphome/blob/main/wizmote-esphome-blueprint.yml
   input:
     remote:
       name: WizMote Mac address
       description: Mac address of the WizMote can be found by watching for
         the 'esphome.wizmote_choose' or 'esphome.wizmote_action' events
-        as you press a button.
+        as you press a button. (REMOVE all puncutation between letters/number, and ALL LOWERCASE only)
       selector:
         text:
-    brightness_dim:
-      name: Brightness when moon button pressed
+    action_button_1:
+      name: Action for Button 1
+      description: Choose a service to trigger for button 1
       selector:
-        number:
-          min: 1
-          max: 100
-          unit_of_measurement: "%"
-    brightness_step:
-      name: Brightness step when pressing or holding dimmer buttons
+        action: {}
+    action_button_2:
+      name: Action for Button 2
+      description: Choose a service to trigger for button 2
       selector:
-        number:
-          min: 1
-          max: 50
-          unit_of_measurement: "%"
-    light_one:
-      name: Light 1
-      description: The light to control after pressing 1
+        action: {}
+    action_button_3:
+      name: Action for Button 3
+      description: Choose a service to trigger for button 3
       selector:
-        target:
-          entity:
-            domain: light
-    light_two:
-      name: Light 2
-      description: The light to control after pressing 2
+        action: {}
+    action_button_4:
+      name: Action for Button 4
+      description: Choose a service to trigger for button 4
       selector:
-        target:
-          entity:
-            domain: light
-    light_three:
-      name: Light 3
-      description: The light to control after pressing 3
+        action: {}
+    action_dim:
+      name: Action for Dim Button
+      description: Choose a service to trigger for the dim button
       selector:
-        target:
-          entity:
-            domain: light
-    light_four:
-      name: Light 4
-      description: The light to control after pressing 4
+        action: {}
+    action_darker:
+      name: Action for Darker Button
+      description: Choose a service to trigger for the darker button
       selector:
-        target:
-          entity:
-            domain: light
+        action: {}
+    action_lighter:
+      name: Action for Lighter Button
+      description: Choose a service to trigger for the lighter button
+      selector:
+        action: {}
+    action_on:
+      name: Action for On Button
+      description: Choose a service to trigger for the on button
+      selector:
+        action: {}
+    action_off:
+      name: Action for Off Button
+      description: Choose a service to trigger for the off button
+      selector:
+        action: {}
 
 mode: restart
 
 trigger:
-  platform: event
-  event_type: esphome.wizmote_choose
-  event_data:
-    mac: !input "remote"
+  - platform: event
+    event_type: esphome.wizmote_choose
+    event_data:
+      mac: !input "remote"
+  - platform: event
+    event_type: esphome.wizmote_action
+    event_data:
+      mac: !input "remote"
 
 action:
   - variables:
       button: "{{ trigger.event.data.button | int }}"
-      brightness_step: !input brightness_step
-      light_one: !input light_one
-      light_two: !input light_two
-      light_three: !input light_three
-      light_four: !input light_four
-      light: "\n{% if button == 1 %}\n \
-        \ {{ light_one }}\n \
-        \ {% elif button == 2 %}\n \
-        \ {{ light_two }}\n \
-        \ {% elif button == 3 %}\n \
-        \ {{ light_three }}\n \
-        \ {% elif button == 4 %}\n \
-        \ {{ light_four }}\n \
-        \ {% endif %}\n"
-  - repeat:
-      until:
-        - "{{ wait.trigger == none }}"
-      sequence:
-        - wait_for_trigger:
-            - platform: event
-              event_type: esphome.wizmote_action
-              event_data:
-                mac: !input "remote"
-          continue_on_timeout: false
-          timeout: 00:00:05
-        - choose:
-            - conditions:
-                - "{{ wait.trigger.event.data.button | int == 1 }}"
-              sequence:
-                - service: light.turn_on
-                  target: "{{ light }}"
-            - conditions:
-                - "{{ wait.trigger.event.data.button | int == 2 }}"
-              sequence:
-                - service: light.turn_off
-                  target: "{{ light }}"
-            - conditions:
-                - "{{ wait.trigger.event.data.button | int == 3 }}"
-              sequence:
-                - service: light.turn_on
-                  target: "{{ light }}"
-                  data:
-                    brightness_pct: !input brightness_dim
-            - conditions:
-                - "{{ wait.trigger.event.data.button | int == 8 }}"
-              sequence:
-                - service: light.turn_on
-                  target: "{{ light }}"
-                  data:
-                    brightness_step_pct: "-{{ brightness_step }}"
-            - conditions:
-                - "{{ wait.trigger.event.data.button | int == 9 }}"
-              sequence:
-                - service: light.turn_on
-                  target: "{{ light }}"
-                  data:
-                    brightness_step_pct: "{{ brightness_step }}"
+      event_type: "{{ trigger.event.event_type }}"
+
+  # Handle actions for 'wizmote_choose' specifically for buttons 1, 2, 3, 4
+  - choose:
+      - conditions:
+          - "{{ event_type == 'esphome.wizmote_choose' }}"
+        sequence:
+          - choose:
+              - conditions:
+                  - "{{ button == 1 }}"
+                sequence:
+                  - !input action_button_1
+              - conditions:
+                  - "{{ button == 2 }}"
+                sequence:
+                  - !input action_button_2
+              - conditions:
+                  - "{{ button == 3 }}"
+                sequence:
+                  - !input action_button_3
+              - conditions:
+                  - "{{ button == 4 }}"
+                sequence:
+                  - !input action_button_4
+
+  # Handle actions for 'wizmote_action' for other buttons (including dim, on, off, etc.)
+  - choose:
+      - conditions:
+          - "{{ event_type == 'esphome.wizmote_action' }}"
+        sequence:
+          - choose:
+              - conditions:
+                  - "{{ button == 1 }}"
+                sequence:
+                  - !input action_button_1
+              - conditions:
+                  - "{{ button == 2 }}"
+                sequence:
+                  - !input action_button_2
+              - conditions:
+                  - "{{ button == 3 }}"
+                sequence:
+                  - !input action_button_3
+              - conditions:
+                  - "{{ button == 4 }}"
+                sequence:
+                  - !input action_button_4
+              - conditions:
+                  - "{{ button == 5 }}"
+                sequence:
+                  - !input action_dim
+              - conditions:
+                  - "{{ button == 6 }}"
+                sequence:
+                  - !input action_darker
+              - conditions:
+                  - "{{ button == 7 }}"
+                sequence:
+                  - !input action_lighter
+              - conditions:
+                  - "{{ button == 8 }}"
+                sequence:
+                  - !input action_on
+              - conditions:
+                  - "{{ button == 9 }}"
+                sequence:
+                  - !input action_off
