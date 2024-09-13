@@ -109,28 +109,17 @@ action:
           - choose:
               - conditions:
                   - "{{ button == 1 and action_button_1 != [] }}"
-                sequence: !input action_button_1
-              - conditions:
-                  - "{{ button == 2 and action_button_2 != [] }}"
-                sequence: !input action_button_2
-              - conditions:
-                  - "{{ button == 3 and action_button_3 != [] }}"
-                sequence: !input action_button_3
-              - conditions:
-                  - "{{ button == 4 and action_button_4 != [] }}"
-                sequence: !input action_button_4
-              - conditions:
-                  - "{{ button == 5 and action_dim != [] }}"
-                sequence: !input action_dim
-              - conditions:
-                  - "{{ button == 6 and action_darker != [] }}"
-                sequence: !input action_darker
-              - conditions:
-                  - "{{ button == 7 and action_lighter != [] }}"
-                sequence: !input action_lighter
-              - conditions:
-                  - "{{ button == 8 and action_on != [] }}"
                 sequence: !input action_on
               - conditions:
-                  - "{{ button == 9 and action_off != [] }}"
+                  - "{{ button == 2 and action_button_2 != [] }}"
                 sequence: !input action_off
+              - conditions:
+                  - "{{ button == 3 and action_button_3 != [] }}"
+                sequence: !input action_dim
+              - conditions:
+                  - "{{ button == 8 and action_darker != [] }}"
+                sequence: !input action_darker
+              - conditions:
+                  - "{{ button == 9 and action_lighter != [] }}"
+                sequence: !input action_lighter
+
