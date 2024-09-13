@@ -7,7 +7,7 @@ blueprint:
       name: WizMote Mac address
       description: Mac address of the WizMote can be found by watching for
         the 'esphome.wizmote_choose' or 'esphome.wizmote_action' events
-        as you press a button. (REMOVE all puncutation between letters/number, and ALL LOWERCASE only)
+        as you press a button.
       selector:
         text:
     action_button_1:
@@ -82,19 +82,19 @@ action:
               - conditions:
                   - "{{ button == 1 }}"
                 sequence:
-                  - !input action_button_1
+                  - service: !input action_button_1
               - conditions:
                   - "{{ button == 2 }}"
                 sequence:
-                  - !input action_button_2
+                  - service: !input action_button_2
               - conditions:
                   - "{{ button == 3 }}"
                 sequence:
-                  - !input action_button_3
+                  - service: !input action_button_3
               - conditions:
                   - "{{ button == 4 }}"
                 sequence:
-                  - !input action_button_4
+                  - service: !input action_button_4
 
   # Handle actions for 'wizmote_action' for other buttons (including dim, on, off, etc.)
   - choose:
@@ -105,36 +105,36 @@ action:
               - conditions:
                   - "{{ button == 1 }}"
                 sequence:
-                  - !input action_button_1
+                  - service: !input action_button_1
               - conditions:
                   - "{{ button == 2 }}"
                 sequence:
-                  - !input action_button_2
+                  - service: !input action_button_2
               - conditions:
                   - "{{ button == 3 }}"
                 sequence:
-                  - !input action_button_3
+                  - service: !input action_button_3
               - conditions:
                   - "{{ button == 4 }}"
                 sequence:
-                  - !input action_button_4
+                  - service: !input action_button_4
               - conditions:
                   - "{{ button == 5 }}"
                 sequence:
-                  - !input action_dim
+                  - service: !input action_dim
               - conditions:
                   - "{{ button == 6 }}"
                 sequence:
-                  - !input action_darker
+                  - service: !input action_darker
               - conditions:
                   - "{{ button == 7 }}"
                 sequence:
-                  - !input action_lighter
+                  - service: !input action_lighter
               - conditions:
                   - "{{ button == 8 }}"
                 sequence:
-                  - !input action_on
+                  - service: !input action_on
               - conditions:
                   - "{{ button == 9 }}"
                 sequence:
-                  - !input action_off
+                  - service: !input action_off
