@@ -70,8 +70,13 @@ This repo provides some blueprints to get you started with the remote. The bluep
 - **Generic Device Slots:** Buttons 1-4 can control any combination of lights, switches, or fans.
 - **Optional Devices:** Not all device buttons need to be assigned.
 - **Fan High/Low Speed Control:** The up/down buttons can be configured to set fan speeds to a low and high percentage.
-- **Stateless Default Actions:** Pressing ON or OFF without first selecting a device will control a default list of entities (optional).
-- **Moon Button:** The moon button turns off a configurable list of entities, with a separate, customizable fade-out time for lights.
 - **Configurable Timeouts:** All delays and transition times are customizable through the blueprint UI.
 
 [![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fjesserockz%2Fwizmote-esphome%2Fblob%2Fmain%2Fwizmote-esphome-blueprint-flexible.yaml)
+
+**wizmote-esphome-blueprint-default-behavior.yaml**
+  This is a helper blueprint to go along with any of the other blueprints. The other blueprints all require that a user first press a "device" button (1-4) before it will do anything. This blueprint handles the case (if desired) that the user has not selected a device, or the device-specific automation has timed out. For example, if you have your remote set up so that it times out in 20 seconds, that means that once a user selects a device to turn on or off, once they stop pressing buttons for 20 seconds, the automation will time out and any subsequent on/off/up/down button presses will be ignored. This is most useful when the remote is put down and should be considered a "fresh start". If a user presses the on button, perhaps they expect some generic action to take place, such as turn on a default light. This blueprint provides that capability. When the On/Off/Moon button are pressed, it will check to see if the other wizmote blueprint automation is running or timed out. If it's timed out, then this automation will run based on the described actions. It is also possible always support the moon button behavior or only when timed out.
+- **Default Actions:** Pressing ON or OFF without first selecting a device will control a default list of entities.
+- **Moon Button:** The moon button turns off a configurable list of entities, with a separate, customizable fade-out time for lights. This has an additional toggle to support always being enabled or only when the other automation is timed out.
+
+[![Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled.](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fjesserockz%2Fwizmote-esphome%2Fblob%2Fmain%2Fwizmote-esphome-blueprint-default-behavior.yaml)
