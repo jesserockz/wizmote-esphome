@@ -7,9 +7,10 @@ blueprint:
     - **Generic Device Slots:** Buttons 1-4 can control any combination of lights, switches, or fans.
     - **Optional Devices:** Not all device buttons need to be assigned.
     - **Fan High/Low Speed Control:** The up/down buttons can be configured to set fan speeds to a low and high percentage.
-    - **Stateless Default Actions:** Pressing ON or OFF without first selecting a device will control a default list of entities (optional).
-    - **Moon Button:** The moon button turns off a configurable list of entities, with a separate, customizable fade-out time for lights.
     - **Configurable Timeouts:** All delays and transition times are customizable through the blueprint UI.
+
+    **NOTE:** This blueprint only handles device-specific controls. For default actions (e.g., pressing ON/OFF without selecting a device),
+    you must use the "ESPHome Wizmote Default Behavior" companion blueprint.
   domain: automation
   source_url: https://github.com/jesserockz/wizmote-esphome/blob/main/wizmote-esphome-blueprint.yml
   input:
@@ -20,31 +21,6 @@ blueprint:
         as you press a button.
       selector:
         text:
-    default_on_entities:
-      name: Default ON Entities (Optional)
-      description: If the ON button is pressed without a device being selected first, these entities will be turned on.
-      selector:
-        target:
-          entity:
-            domain: [light, switch, fan]
-      default: {}
-    moon_button_entities:
-      name: Moon Button Entities (Optional)
-      description: Lights, switches, or fans to turn OFF when the moon/night button is pressed.
-      selector:
-        target:
-          entity:
-            domain: [light, switch, fan]
-      default: {}
-    moon_transition_time:
-      name: Moon Button Light Transition
-      description: The time in seconds for lights to fade out when the moon button is pressed.
-      selector:
-        number:
-          min: 0
-          max: 30
-          unit_of_measurement: s
-      default: 5
     fan_low_speed:
       name: Fan Low Speed
       description: The speed percentage for the fan when the 'down' button is pressed.
@@ -119,261 +95,197 @@ trigger:
     event_type: esphome.wizmote_choose
     event_data:
       mac: !input "remote"
-  - platform: event
-    event_type: esphome.wizmote_action
-    event_data:
-      mac: !input "remote"
-      button: "1"
-  - platform: event
-    event_type: esphome.wizmote_action
-    event_data:
-      mac: !input "remote"
-      button: "2"
-  - platform: event
-    event_type: esphome.wizmote_action
-    event_data:
-      mac: !input "remote"
-      button: "3"
+
 action:
+  - variables:
+      button: "{{ trigger.event.data.button | int }}"
+      brightness_step: !input brightness_step
   - choose:
-      - conditions:
-          - condition: template
-            value_template: "{{ trigger.event.event_type == 'esphome.wizmote_choose' }}"
+      - conditions: "{{ button == 1 }}"
         sequence:
           - variables:
-              button: "{{ trigger.event.data.button | int }}"
-              brightness_step: !input brightness_step
-          - choose:
-              - conditions: "{{ button == 1 }}"
-                sequence:
-                  - variables:
-                      target_device: !input device_one
-                  - condition: template
-                    value_template: "{{ target_device != {} }}"
-                  - repeat:
-                      until: "{{ wait.trigger == none }}"
+              target_device: !input device_one
+          - condition: template
+            value_template: "{{ target_device != {} }}"
+          - repeat:
+              until: "{{ wait.trigger == none }}"
+              sequence:
+                - wait_for_trigger:
+                    - platform: event
+                      event_type: esphome.wizmote_action
+                      event_data:
+                        mac: !input "remote"
+                  continue_on_timeout: false
+                  timeout: !input selection_timeout
+                - choose:
+                    - conditions: "{{ wait.trigger.event.data.button | int == 1 }}"
                       sequence:
-                        - wait_for_trigger:
-                            - platform: event
-                              event_type: esphome.wizmote_action
-                              event_data:
-                                mac: !input "remote"
-                          continue_on_timeout: false
-                          timeout: !input selection_timeout
-                        - choose:
-                            - conditions: "{{ wait.trigger.event.data.button | int == 1 }}"
-                              sequence:
-                                - service: homeassistant.turn_on
-                                  target: !input device_one
-                            - conditions: "{{ wait.trigger.event.data.button | int == 2 }}"
-                              sequence:
-                                - service: homeassistant.turn_off
-                                  target: !input device_one
-                            - conditions: "{{ wait.trigger.event.data.button | int == 8 }}"
-                              sequence:
-                                - parallel:
-                                    - service: light.turn_on
-                                      data:
-                                        brightness_step_pct: "{{ -(brightness_step | float) }}"
-                                      target: !input device_one
-                                    - service: fan.set_percentage
-                                      data:
-                                        percentage: !input fan_low_speed
-                                      target: !input device_one
-                            - conditions: "{{ wait.trigger.event.data.button | int == 9 }}"
-                              sequence:
-                                - parallel:
-                                    - service: light.turn_on
-                                      data:
-                                        brightness_step_pct: "{{ brightness_step | float }}"
-                                      target: !input device_one
-                                    - service: fan.set_percentage
-                                      data:
-                                        percentage: !input fan_high_speed
-                                      target: !input device_one
-              - conditions: "{{ button == 2 }}"
-                sequence:
-                  - variables:
-                      target_device: !input device_two
-                  - condition: template
-                    value_template: "{{ target_device != {} }}"
-                  - repeat:
-                      until: "{{ wait.trigger == none }}"
+                        - service: homeassistant.turn_on
+                          target: !input device_one
+                    - conditions: "{{ wait.trigger.event.data.button | int == 2 }}"
                       sequence:
-                        - wait_for_trigger:
-                            - platform: event
-                              event_type: esphome.wizmote_action
-                              event_data:
-                                mac: !input "remote"
-                          continue_on_timeout: false
-                          timeout: !input selection_timeout
-                        - choose:
-                            - conditions: "{{ wait.trigger.event.data.button | int == 1 }}"
-                              sequence:
-                                - service: homeassistant.turn_on
-                                  target: !input device_two
-                            - conditions: "{{ wait.trigger.event.data.button | int == 2 }}"
-                              sequence:
-                                - service: homeassistant.turn_off
-                                  target: !input device_two
-                            - conditions: "{{ wait.trigger.event.data.button | int == 8 }}"
-                              sequence:
-                                - parallel:
-                                    - service: light.turn_on
-                                      data:
-                                        brightness_step_pct: "{{ -(brightness_step | float) }}"
-                                      target: !input device_two
-                                    - service: fan.set_percentage
-                                      data:
-                                        percentage: !input fan_low_speed
-                                      target: !input device_two
-                            - conditions: "{{ wait.trigger.event.data.button | int == 9 }}"
-                              sequence:
-                                - parallel:
-                                    - service: light.turn_on
-                                      data:
-                                        brightness_step_pct: "{{ brightness_step | float }}"
-                                      target: !input device_two
-                                    - service: fan.set_percentage
-                                      data:
-                                        percentage: !input fan_high_speed
-                                      target: !input device_two
-              - conditions: "{{ button == 3 }}"
-                sequence:
-                  - variables:
-                      target_device: !input device_three
-                  - condition: template
-                    value_template: "{{ target_device != {} }}"
-                  - repeat:
-                      until: "{{ wait.trigger == none }}"
+                        - service: homeassistant.turn_off
+                          target: !input device_one
+                    - conditions: "{{ wait.trigger.event.data.button | int == 8 }}"
                       sequence:
-                        - wait_for_trigger:
-                            - platform: event
-                              event_type: esphome.wizmote_action
-                              event_data:
-                                mac: !input "remote"
-                          continue_on_timeout: false
-                          timeout: !input selection_timeout
-                        - choose:
-                            - conditions: "{{ wait.trigger.event.data.button | int == 1 }}"
-                              sequence:
-                                - service: homeassistant.turn_on
-                                  target: !input device_three
-                            - conditions: "{{ wait.trigger.event.data.button | int == 2 }}"
-                              sequence:
-                                - service: homeassistant.turn_off
-                                  target: !input device_three
-                            - conditions: "{{ wait.trigger.event.data.button | int == 8 }}"
-                              sequence:
-                                - parallel:
-                                    - service: light.turn_on
-                                      data:
-                                        brightness_step_pct: "{{ -(brightness_step | float) }}"
-                                      target: !input device_three
-                                    - service: fan.set_percentage
-                                      data:
-                                        percentage: !input fan_low_speed
-                                      target: !input device_three
-                            - conditions: "{{ wait.trigger.event.data.button | int == 9 }}"
-                              sequence:
-                                - parallel:
-                                    - service: light.turn_on
-                                      data:
-                                        brightness_step_pct: "{{ brightness_step | float }}"
-                                      target: !input device_three
-                                    - service: fan.set_percentage
-                                      data:
-                                        percentage: !input fan_high_speed
-                                      target: !input device_three
-              - conditions: "{{ button == 4 }}"
-                sequence:
-                  - variables:
-                      target_device: !input device_four
-                  - condition: template
-                    value_template: "{{ target_device != {} }}"
-                  - repeat:
-                      until: "{{ wait.trigger == none }}"
+                        - parallel:
+                            - service: light.turn_on
+                              data:
+                                brightness_step_pct: "{{ -(brightness_step | float) }}"
+                              target: !input device_one
+                            - service: fan.set_percentage
+                              data:
+                                percentage: !input fan_low_speed
+                              target: !input device_one
+                    - conditions: "{{ wait.trigger.event.data.button | int == 9 }}"
                       sequence:
-                        - wait_for_trigger:
-                            - platform: event
-                              event_type: esphome.wizmote_action
-                              event_data:
-                                mac: !input "remote"
-                          continue_on_timeout: false
-                          timeout: !input selection_timeout
-                        - choose:
-                            - conditions: "{{ wait.trigger.event.data.button | int == 1 }}"
-                              sequence:
-                                - service: homeassistant.turn_on
-                                  target: !input device_four
-                            - conditions: "{{ wait.trigger.event.data.button | int == 2 }}"
-                              sequence:
-                                - service: homeassistant.turn_off
-                                  target: !input device_four
-                            - conditions: "{{ wait.trigger.event.data.button | int == 8 }}"
-                              sequence:
-                                - parallel:
-                                    - service: light.turn_on
-                                      data:
-                                        brightness_step_pct: "{{ -(brightness_step | float) }}"
-                                      target: !input device_four
-                                    - service: fan.set_percentage
-                                      data:
-                                        percentage: !input fan_low_speed
-                                      target: !input device_four
-                            - conditions: "{{ wait.trigger.event.data.button | int == 9 }}"
-                              sequence:
-                                - parallel:
-                                    - service: light.turn_on
-                                      data:
-                                        brightness_step_pct: "{{ brightness_step | float }}"
-                                      target: !input device_four
-                                    - service: fan.set_percentage
-                                      data:
-                                        percentage: !input fan_high_speed
-                                      target: !input device_four
-    default:
-      - choose:
-          - conditions:
-              - condition: template
-                value_template: "{{ trigger.event.data.button | int == 1 }}"
-            sequence:
-              - variables:
-                  default_entities: !input default_on_entities
-              - if:
-                  - condition: template
-                    value_template: "{{ default_entities != {} }}"
-                then:
-                  - service: homeassistant.turn_on
-                    target: !input default_on_entities
-          - conditions:
-              - condition: template
-                value_template: "{{ trigger.event.data.button | int == 2 }}"
-            sequence:
-              - variables:
-                  default_entities: !input default_on_entities
-              - if:
-                  - condition: template
-                    value_template: "{{ default_entities != {} }}"
-                then:
-                  - service: homeassistant.turn_off
-                    target: !input default_on_entities
-          - conditions:
-              - condition: template
-                value_template: "{{ trigger.event.data.button | int == 3 }}"
-            sequence:
-              - variables:
-                  moon_entities: !input moon_button_entities
-              - if:
-                  - condition: template
-                    value_template: "{{ moon_entities != {} }}"
-                then:
-                  - parallel:
-                      - service: light.turn_off
-                        data:
-                          transition: !input moon_transition_time
-                        target: !input moon_button_entities
-                      - service: switch.turn_off
-                        target: !input moon_button_entities
-                      - service: fan.turn_off
-                        target: !input moon_button_entities
+                        - parallel:
+                            - service: light.turn_on
+                              data:
+                                brightness_step_pct: "{{ brightness_step | float }}"
+                              target: !input device_one
+                            - service: fan.set_percentage
+                              data:
+                                percentage: !input fan_high_speed
+                              target: !input device_one
+      - conditions: "{{ button == 2 }}"
+        sequence:
+          - variables:
+              target_device: !input device_two
+          - condition: template
+            value_template: "{{ target_device != {} }}"
+          - repeat:
+              until: "{{ wait.trigger == none }}"
+              sequence:
+                - wait_for_trigger:
+                    - platform: event
+                      event_type: esphome.wizmote_action
+                      event_data:
+                        mac: !input "remote"
+                  continue_on_timeout: false
+                  timeout: !input selection_timeout
+                - choose:
+                    - conditions: "{{ wait.trigger.event.data.button | int == 1 }}"
+                      sequence:
+                        - service: homeassistant.turn_on
+                          target: !input device_two
+                    - conditions: "{{ wait.trigger.event.data.button | int == 2 }}"
+                      sequence:
+                        - service: homeassistant.turn_off
+                          target: !input device_two
+                    - conditions: "{{ wait.trigger.event.data.button | int == 8 }}"
+                      sequence:
+                        - parallel:
+                            - service: light.turn_on
+                              data:
+                                brightness_step_pct: "{{ -(brightness_step | float) }}"
+                              target: !input device_two
+                            - service: fan.set_percentage
+                              data:
+                                percentage: !input fan_low_speed
+                              target: !input device_two
+                    - conditions: "{{ wait.trigger.event.data.button | int == 9 }}"
+                      sequence:
+                        - parallel:
+                            - service: light.turn_on
+                              data:
+                                brightness_step_pct: "{{ brightness_step | float }}"
+                              target: !input device_two
+                            - service: fan.set_percentage
+                              data:
+                                percentage: !input fan_high_speed
+                              target: !input device_two
+      - conditions: "{{ button == 3 }}"
+        sequence:
+          - variables:
+              target_device: !input device_three
+          - condition: template
+            value_template: "{{ target_device != {} }}"
+          - repeat:
+              until: "{{ wait.trigger == none }}"
+              sequence:
+                - wait_for_trigger:
+                    - platform: event
+                      event_type: esphome.wizmote_action
+                      event_data:
+                        mac: !input "remote"
+                  continue_on_timeout: false
+                  timeout: !input selection_timeout
+                - choose:
+                    - conditions: "{{ wait.trigger.event.data.button | int == 1 }}"
+                      sequence:
+                        - service: homeassistant.turn_on
+                          target: !input device_three
+                    - conditions: "{{ wait.trigger.event.data.button | int == 2 }}"
+                      sequence:
+                        - service: homeassistant.turn_off
+                          target: !input device_three
+                    - conditions: "{{ wait.trigger.event.data.button | int == 8 }}"
+                      sequence:
+                        - parallel:
+                            - service: light.turn_on
+                              data:
+                                brightness_step_pct: "{{ -(brightness_step | float) }}"
+                              target: !input device_three
+                            - service: fan.set_percentage
+                              data:
+                                percentage: !input fan_low_speed
+                              target: !input device_three
+                    - conditions: "{{ wait.trigger.event.data.button | int == 9 }}"
+                      sequence:
+                        - parallel:
+                            - service: light.turn_on
+                              data:
+                                brightness_step_pct: "{{ brightness_step | float }}"
+                              target: !input device_three
+                            - service: fan.set_percentage
+                              data:
+                                percentage: !input fan_high_speed
+                              target: !input device_three
+      - conditions: "{{ button == 4 }}"
+        sequence:
+          - variables:
+              target_device: !input device_four
+          - condition: template
+            value_template: "{{ target_device != {} }}"
+          - repeat:
+              until: "{{ wait.trigger == none }}"
+              sequence:
+                - wait_for_trigger:
+                    - platform: event
+                      event_type: esphome.wizmote_action
+                      event_data:
+                        mac: !input "remote"
+                  continue_on_timeout: false
+                  timeout: !input selection_timeout
+                - choose:
+                    - conditions: "{{ wait.trigger.event.data.button | int == 1 }}"
+                      sequence:
+                        - service: homeassistant.turn_on
+                          target: !input device_four
+                    - conditions: "{{ wait.trigger.event.data.button | int == 2 }}"
+                      sequence:
+                        - service: homeassistant.turn_off
+                          target: !input device_four
+                    - conditions: "{{ wait.trigger.event.data.button | int == 8 }}"
+                      sequence:
+                        - parallel:
+                            - service: light.turn_on
+                              data:
+                                brightness_step_pct: "{{ -(brightness_step | float) }}"
+                              target: !input device_four
+                            - service: fan.set_percentage
+                              data:
+                                percentage: !input fan_low_speed
+                              target: !input device_four
+                    - conditions: "{{ wait.trigger.event.data.button | int == 9 }}"
+                      sequence:
+                        - parallel:
+                            - service: light.turn_on
+                              data:
+                                brightness_step_pct: "{{ brightness_step | float }}"
+                              target: !input device_four
+                            - service: fan.set_percentage
+                              data:
+                                percentage: !input fan_high_speed
+                              target: !input device_four
