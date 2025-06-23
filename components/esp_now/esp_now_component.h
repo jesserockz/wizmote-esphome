@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(USE_ESP32)
+#include <esp_now.h>
+#endif
+
 #include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 #include "esphome/core/helpers.h"
@@ -44,7 +48,7 @@ class ESPNowComponent : public Component {
 #ifdef USE_ESP8266
   static void on_data_received(uint8_t *bssid, uint8_t *data, uint8_t len);
 #elif defined(USE_ESP32)
-  static void on_data_received(const uint8_t *bssid, const uint8_t *data, int len);
+  static void on_data_received(const esp_now_recv_info_t *esp_now_info, const uint8_t *data, int len);
 #endif
 
   Trigger<ESPNowPacket> *get_on_packet_trigger() { return this->on_packet_; }
