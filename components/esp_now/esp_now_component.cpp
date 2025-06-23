@@ -86,10 +86,11 @@ void ESPNowComponent::dump_config() { ESP_LOGCONFIG(TAG, "esp_now:"); }
 
 #ifdef USE_ESP8266
 void ESPNowComponent::on_data_received(uint8_t *bssid, uint8_t *data, uint8_t len) {
+  auto packet = make_unique<ESPNowPacket>(bssid, data, len);
 #elif defined(USE_ESP32)
 void ESPNowComponent::on_data_received(const esp_now_recv_info_t *esp_now_info, const uint8_t *data, int len) {
-#endif
   auto packet = make_unique<ESPNowPacket>(esp_now_info->src_addr, data, len);
+#endif
   global_esp_now->receive_queue_.push(std::move(packet));
 }
 
