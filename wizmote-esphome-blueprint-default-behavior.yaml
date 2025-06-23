@@ -1,0 +1,131 @@
+blueprint:
+  name: ESPHome Wizmote Default Behavior
+  description: |-
+    Handles default actions for a Wizmote when no device is selected and the other blueprints are not active.
+    This blueprint is designed to work alongside one of the "ESPHome Wizmote Receiver" blueprints.
+    It triggers default actions (ON/OFF/Moon) only when the main device-control automation is not active (i.e., has timed out).
+  domain: automation
+  source_url: https://github.com/jesserockz/wizmote-esphome/blob/main/wizmote-esphome-blueprint.yml
+
+  input:
+    remote:
+      name: WizMote Mac address
+      description: Mac address of the WizMote.
+      selector:
+        text:
+
+    device_automation:
+      name: Wizmote Device-Control Automation
+      description: The automation entity created from the 'ESPHome Wizmote Receiver' blueprint.
+      selector:
+        entity:
+          domain: automation
+
+    default_on_entities:
+      name: Default ON/OFF Entities (Optional)
+      description: If the ON or OFF button is pressed without a device being selected first, these entities will be turned on/off.
+      selector:
+        target:
+          entity:
+            domain: [light, switch, fan]
+      default: {}
+
+    moon_button_entities:
+      name: Moon Button Entities (Optional)
+      description: Lights, switches, or fans to turn OFF when the moon/night button is pressed.
+      selector:
+        target:
+          entity:
+            domain: [light, switch, fan]
+      default: {}
+
+    moon_transition_time:
+      name: Moon Button Light Transition
+      description: The time in seconds for lights to fade out when the moon button is pressed.
+      selector:
+        number:
+          min: 0
+          max: 30
+          unit_of_measurement: s
+      default: 5
+    moon_button_always_enabled:
+      name: Moon Button Always Enabled
+      description: If enabled, the moon button will work even when a device is selected in the other blueprint.
+      selector:
+        boolean:
+      default: false
+
+mode: single
+
+trigger:
+  - platform: event
+    event_type: esphome.wizmote_action
+    event_data:
+      mac: !input remote
+      button: "1"
+  - platform: event
+    event_type: esphome.wizmote_action
+    event_data:
+      mac: !input remote
+      button: "2"
+  - platform: event
+    event_type: esphome.wizmote_action
+    event_data:
+      mac: !input remote
+      button: "3"
+
+action:
+  - variables:
+      device_automation: !input device_automation
+      moon_always_on: !input moon_button_always_enabled
+      button_pressed: "{{ trigger.event.data.button | int }}"
+  - if:
+      - condition: template
+        value_template: >
+          {{ (button_pressed == 3 and moon_always_on) or
+             (state_attr(device_automation, 'current') == 0) }}
+    then:
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ button_pressed == 1 }}"
+            sequence:
+              - variables:
+                  default_entities: !input default_on_entities
+              - if:
+                  - condition: template
+                    value_template: "{{ default_entities != {} }}"
+                then:
+                  - service: homeassistant.turn_on
+                    target: !input default_on_entities
+          - conditions:
+              - condition: template
+                value_template: "{{ button_pressed == 2 }}"
+            sequence:
+              - variables:
+                  default_entities: !input default_on_entities
+              - if:
+                  - condition: template
+                    value_template: "{{ default_entities != {} }}"
+                then:
+                  - service: homeassistant.turn_off
+                    target: !input default_on_entities
+          - conditions:
+              - condition: template
+                value_template: "{{ button_pressed == 3 }}"
+            sequence:
+              - variables:
+                  moon_entities: !input moon_button_entities
+              - if:
+                  - condition: template
+                    value_template: "{{ moon_entities != {} }}"
+                then:
+                  - parallel:
+                      - service: light.turn_off
+                        data:
+                          transition: !input moon_transition_time
+                        target: !input moon_button_entities
+                      - service: switch.turn_off
+                        target: !input moon_button_entities
+                      - service: fan.turn_off
+                        target: !input moon_button_entities
