@@ -1,6 +1,7 @@
 #pragma once
 
 #if defined(USE_ESP32)
+#include <esp_idf_version.h>
 #include <esp_now.h>
 #endif
 
