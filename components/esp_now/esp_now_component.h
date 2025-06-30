@@ -48,7 +48,11 @@ class ESPNowComponent : public Component {
 #ifdef USE_ESP8266
   static void on_data_received(uint8_t *bssid, uint8_t *data, uint8_t len);
 #elif defined(USE_ESP32)
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
   static void on_data_received(const esp_now_recv_info_t *esp_now_info, const uint8_t *data, int len);
+#else
+  static void on_data_received(const uint8_t *bssid, const uint8_t *data, int len);
+#endif
 #endif
 
   Trigger<ESPNowPacket> *get_on_packet_trigger() { return this->on_packet_; }

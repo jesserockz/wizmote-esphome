@@ -84,8 +84,13 @@ void ESPNowComponent::dump_config() { ESP_LOGCONFIG(TAG, "esp_now:"); }
 void ESPNowComponent::on_data_received(uint8_t *bssid, uint8_t *data, uint8_t len) {
   auto packet = make_unique<ESPNowPacket>(bssid, data, len);
 #elif defined(USE_ESP32)
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
 void ESPNowComponent::on_data_received(const esp_now_recv_info_t *esp_now_info, const uint8_t *data, int len) {
   auto packet = make_unique<ESPNowPacket>(esp_now_info->src_addr, data, len);
+#else
+void ESPNowComponent::on_data_received(const uint8_t *bssid, const uint8_t *data, int len) {
+  auto packet = make_unique<ESPNowPacket>(bssid, data, len);
+#endif
 #endif
   global_esp_now->receive_queue_.push(std::move(packet));
 }
