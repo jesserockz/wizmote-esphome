@@ -1,0 +1,60 @@
+esphome:
+  name: "wizmote-bridge-01"
+  friendly_name: "WiZmote Bridge"
+  
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# --- CONNECTIVITY ---
+wifi:
+  # TWEAK 2: Prevent sleep state packet drops 
+  power_save_mode: none
+  
+  # TWEAK 3: Limit TX power to prevent brownouts
+  output_power: 15.0db
+
+  # TWEAK 1: Explicit networks block for BSSID and Channel targeting
+  networks:
+    - ssid: !secret wifi_ssid
+      password: !secret wifi_password
+      # Optional target WiFi access point by BSSID to avoid roaming to another channel
+      # bssid: "12:34:56:78:90:AB"
+      channel: 1
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+# --- OTA (Strict Format) ---
+ota:
+  - platform: esphome
+
+logger:
+  level: INFO
+
+# --- WIZMOTE LOGIC ---
+external_components:
+  - source: github://jesserockz/wizmote-esphome
+    # Force ESPHome to bypass the local cache and pull the latest GitHub commit
+    refresh: 0s
+    components: [ esp_now, wizmote ]
+
+esp_now:
+
+# Initialize the listener and fire events to HA
+wizmote:
+  on_button:
+    then:
+      - homeassistant.event:
+          event: esphome.wizmote_button
+          data:
+            # FIX: Standard C++ character array to prevent the heap allocation crash
+            # when evaluating the background ESP-NOW chatter from the WiZ bulbs.
+            mac_address: !lambda |-
+              char mac[13];
+              snprintf(mac, sizeof(mac), "%02x%02x%02x%02x%02x%02x", data.bssid[0], data.bssid[1], data.bssid[2], data.bssid[3], data.bssid[4], data.bssid[5]);
+              return std::string(mac);
+            button: !lambda 'return data.button;'
+            sequence: !lambda 'return data.sequence;'
